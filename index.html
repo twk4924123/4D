@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>今天买什么字? · 开彩日抽几番</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f1014;
+      color: #f4f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      padding: 18px;
+      transition: background 0.35s ease;
+    }
+    body.vip-mode {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(251, 191, 36, 0.22), transparent 55%),
+        radial-gradient(circle at 85% 90%, rgba(245, 158, 11, 0.14), transparent 50%),
+        #09080c;
+    }
+    .container {
+      width: 100%;
+      max-width: 680px;
+      background: #171921;
+      border: 1px solid #262b3a;
+      border-radius: 22px;
+      padding: 26px 20px;
+      box-shadow: 0 22px 55px rgba(0, 0, 0, 0.5);
+      transition: all 0.35s ease;
+    }
+    body.vip-mode .container {
+      background: linear-gradient(165deg, #1b150c 0%, #141118 55%, #191309 100%);
+      border: 1.5px solid rgba(251, 191, 36, 0.65);
+      box-shadow:
+        0 0 0 1px rgba(245, 158, 11, 0.18),
+        0 24px 65px rgba(0, 0, 0, 0.72),
+        0 0 36px rgba(245, 158, 11, 0.2);
+    }
+    .title {
+      text-align: center;
+      font-size: clamp(32px, 7vw, 48px);
+      font-weight: 900;
+      color: #fbbf24;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      user-select: none;
+      cursor: pointer;
+    }
+    body.vip-mode .title {
+      background: linear-gradient(135deg, #fef08a 0%, #fbbf24 45%, #d97706 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 14px rgba(251, 191, 36, 0.35));
+    }
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .pill {
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: #101218;
+      border: 1px solid #2a3042;
+      color: #34d399;
+    }
+    .pill.pool { color: #7dd3fc; }
+    body.vip-mode .pill.vip-badge {
+      color: #fef08a;
+      border: 1px solid rgba(251, 191, 36, 0.75);
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.28), rgba(180, 83, 9, 0.28));
+      box-shadow: 0 0 16px rgba(251, 191, 36, 0.28);
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .roll-btn {
+      flex: 1 1 220px;
+      max-width: 320px;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #f59e0b, #eab308);
+      color: #111318;
+      font-size: 17px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    body.vip-mode .roll-btn:not(.locked) {
+      background: linear-gradient(135deg, #fef08a 0%, #f59e0b 55%, #b45309 100%);
+      color: #181003;
+      box-shadow: 0 6px 24px rgba(245, 158, 11, 0.42);
+    }
+    .roll-btn:active { transform: scale(0.98); }
+    .roll-btn.locked {
+      background: #3f434e;
+      color: #9ca3af;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .roll-btn.locked:active { transform: none; }
+    .buy-btn {
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: 1px solid #38bdf8;
+      background: rgba(56, 189, 248, 0.14);
+      color: #7dd3fc;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .buy-btn:hover { background: rgba(56, 189, 248, 0.24); }
+    body.vip-mode .buy-btn {
+      border-color: rgba(251, 191, 36, 0.65);
+      background: rgba(251, 191, 36, 0.14);
+      color: #fde68a;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .box {
+      background: #101218;
+      border: 1px solid #272c3d;
+      border-radius: 16px;
+      padding: 18px 12px;
+      text-align: center;
+    }
+    body.vip-mode .box {
+      background: linear-gradient(180deg, rgba(251, 191, 36, 0.08) 0%, rgba(16, 13, 22, 0.95) 100%);
+      border: 1px solid rgba(251, 191, 36, 0.45);
+      box-shadow: inset 0 1px 0 rgba(254, 240, 138, 0.22), 0 8px 22px rgba(0, 0, 0, 0.35);
+    }
+    .offday-banner {
+      grid-column: 1 / -1;
+      background: #12151e;
+      border: 1px solid #343b52;
+      border-radius: 16px;
+      padding: 22px 16px;
+      text-align: center;
+    }
+    .offday-main {
+      font-size: 20px;
+      font-weight: 900;
+      color: #fbbf24;
+      margin-bottom: 6px;
+    }
+    .offday-sub {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .company {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 800;
+      color: #fcd34d;
+      background: rgba(251, 191, 36, 0.14);
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    body.vip-mode .company {
+      color: #fef08a;
+      background: rgba(245, 158, 11, 0.24);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+    }
+    .num {
+      font-size: 36px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+    body.vip-mode .num {
+      color: #fef9c3;
+      text-shadow: 0 0 14px rgba(251, 191, 36, 0.25);
+    }
+    .fan {
+      font-size: 15px;
+      font-weight: 800;
+      color: #34d399;
+      margin-bottom: 4px;
+    }
+    .pattern {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .tip-wrap {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .tip-btn {
+      padding: 11px 24px;
+      border-radius: 12px;
+      border: 1px solid #ec4899;
+      background: rgba(236, 72, 153, 0.14);
+      color: #f9a8d4;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .tip-btn:hover { background: rgba(236, 72, 153, 0.24); }
+    .disclaimer {
+      font-size: 11px;
+      color: #7c8294;
+      line-height: 1.6;
+      border-top: 1px solid #242937;
+      padding-top: 14px;
+      text-align: center;
+    }
+    body.vip-mode .disclaimer {
+      border-top-color: rgba(251, 191, 36, 0.25);
+      color: #a89f8b;
+    }
+
+    /* 弹窗 */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
+    }
+    .modal-bg.open { display: flex; }
+    .modal-box {
+      width: 100%;
+      max-width: 410px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #171a23;
+      border: 1px solid #2d3345;
+      border-radius: 20px;
+      padding: 22px 18px;
+      text-align: center;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      background: none;
+      border: none;
+      color: #9ca3af;
+      font-size: 22px;
+      cursor: pointer;
+    }
+    .fate-text {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fbbf24;
+      line-height: 1.5;
+      margin: 10px 0 18px;
+    }
+    .ok-btn {
+      padding: 9px 22px;
+      border-radius: 10px;
+      border: none;
+      background: #f59e0b;
+      color: #111318;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .section-card {
+      margin-top: 10px;
+      background: #101218;
+      border: 1px solid #282f42;
+      border-radius: 14px;
+      padding: 12px;
+      text-align: left;
+    }
+    .section-card.vip-card {
+      border-color: rgba(251, 191, 36, 0.5);
+      background: linear-gradient(160deg, rgba(251, 191, 36, 0.1), #121015);
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #7dd3fc;
+      margin-bottom: 5px;
+    }
+    .section-card.vip-card .section-title { color: #fbbf24; }
+    .section-desc {
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .pack-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 7px;
+    }
+    .pack-opt {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: 1px solid #333b52;
+      background: #161922;
+      color: #f4f4f6;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pack-opt.active {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.16);
+    }
+    .pack-opt.vip-opt.active {
+      border-color: #fbbf24;
+      background: rgba(251, 191, 36, 0.22);
+      color: #fef08a;
+    }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .pay-link-btn {
+      flex: 1 1 140px;
+      display: inline-block;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+    .ask-code-btn {
+      flex: 1 1 140px;
+      display: inline-block;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.18);
+      border: 1px solid #10b981;
+      color: #6ee7b7;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+    .raw-link {
+      display: block;
+      margin-top: 8px;
+      font-size: 11px;
+      color: #9ca3af;
+      word-break: break-all;
+    }
+    .code-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .field-input, .admin-select {
+      width: 100%;
+      padding: 9px 11px;
+      border-radius: 10px;
+      border: 1px solid #333b52;
+      background: #101218;
+      color: #ffffff;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+    .code-row .field-input {
+      flex: 1;
+      margin-top: 0;
+    }
+    .code-btn {
+      padding: 9px 13px;
+      border-radius: 10px;
+      border: none;
+      background: #10b981;
+      color: #06281e;
+      font-weight: 800;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .gen-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #f59e0b, #eab308);
+      color: #111318;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .gen-box {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      background: #0d0f14;
+      border: 1px dashed #fbbf24;
+      text-align: center;
+    }
+    .gen-code-val {
+      font-size: 18px;
+      font-weight: 900;
+      color: #fef08a;
+      letter-spacing: 2px;
+      user-select: all;
+    }
+    .msg-tip {
+      margin-top: 8px;
+      font-size: 12px;
+      min-height: 16px;
+      color: #fbbf24;
+      text-align: left;
+      line-height: 1.45;
+    }
+    .admin-log {
+      margin-top: 10px;
+      max-height: 120px;
+      overflow-y: auto;
+      font-size: 11px;
+      color: #cbd5e1;
+      background: #0d0f14;
+      border-radius: 10px;
+      padding: 8px 10px;
+      text-align: left;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 点标题 5 下可唤醒站长生码器 -->
+    <div id="pageTitle" class="title" onclick="handleTitleTap()">今天买什么字?</div>
+
+    <div class="status-row">
+      <span id="quotaPill" class="pill">剩余次数：10 次</span>
+      <span id="poolPill" class="pill pool">储值累积池：RM 0</span>
+    </div>
+
+    <div class="btn-row">
+      <button id="rollBtn" class="roll-btn" onclick="handleRollClick()">随机出 3 组号码</button>
+      <button class="buy-btn" onclick="openBuyModal()">购买次数</button>
+    </div>
+
+    <div id="threeList" class="grid"></div>
+
+    <div class="tip-wrap">
+      <button class="tip-btn" onclick="openSupportModal()">支持我们</button>
+    </div>
+
+    <div class="disclaimer">
+      免责声明：本页面仅为个人趣味随机选号参考，不构成任何投注建议或中奖保证，开奖结果均为随机事件，请理性对待、量力而行；打赏支持纯属自愿小额赠与，非慈善募捐，不涉及任何投资回报或退款承诺。
+    </div>
+  </div>
+
+  <!-- 命运提示弹窗 -->
+  <div id="fateModal" class="modal-bg" onclick="bgClose(event, 'fateModal')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('fateModal')">×</button>
+      <div class="fate-text">相信命运 我们下期再来</div>
+      <button class="ok-btn" onclick="closeModal('fateModal')">知道了</button>
+    </div>
+  </div>
+
+  <!-- 购买次数弹窗（顾客端：无任何生码功能） -->
+  <div id="buyModal" class="modal-bg" onclick="bgClose(event, 'buyModal')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('buyModal')">×</button>
+      <div style="font-size:17px;font-weight:800;color:#7dd3fc;">购买次数与 VIP</div>
+
+      <div class="section-card">
+        <div class="section-title">1. 选择档位并付款（当前累积池：<span id="modalPoolText">RM 0</span>）</div>
+        <div class="section-desc">小额走累积池：满 <strong>RM100</strong> 送 <strong>1000 次</strong>，满 <strong>RM200</strong> 送 <strong>VIP 无限次</strong>；直接买 VIP <strong>RM100</strong> 一步到位，不走累积池。</div>
+        <div class="pack-grid">
+          <button id="optPool1" type="button" class="pack-opt active" onclick="choosePack('pool_1')">
+            <span>RM1（+RM1 累积池）</span>
+            <span style="color:#34d399;">20 次</span>
+          </button>
+          <button id="optPool10" type="button" class="pack-opt" onclick="choosePack('pool_10')">
+            <span>RM10（+RM10 累积池）</span>
+            <span style="color:#34d399;">250 次</span>
+          </button>
+          <button id="optDirectVip" type="button" class="pack-opt vip-opt" onclick="choosePack('direct_vip')">
+            <span>直接买 VIP · RM100（不走累积池）</span>
+            <span style="color:#fbbf24;">VIP 无限次</span>
+          </button>
+        </div>
+
+        <div class="action-row">
+          <a
+            class="pay-link-btn"
+            href="https://payment.tngdigital.com.my/sc/bDLnvTC3U6"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            打开 Touch 'n Go 付款
+          </a>
+          <a
+            id="askCodeLink"
+            class="ask-code-btn"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            付完联系拿激活码
+          </a>
+        </div>
+        <span class="raw-link">https://payment.tngdigital.com.my/sc/bDLnvTC3U6</span>
+      </div>
+
+      <div class="section-card vip-card">
+        <div class="section-title">2. 拿到激活码后在这里输入入账</div>
+        <div class="code-row">
+          <input id="unlockCodeInput" class="field-input" type="text" placeholder="输入激活码（每码仅限使用一次）" />
+          <button type="button" class="code-btn" onclick="applyUnlockCode()">激活入账</button>
+        </div>
+      </div>
+
+      <div id="buyMsg" class="msg-tip"></div>
+    </div>
+  </div>
+
+  <!-- 站长专属弹窗（仅点标题 5 下 + 正确站长密码后显示） -->
+  <div id="adminModal" class="modal-bg" onclick="bgClose(event, 'adminModal')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('adminModal')">×</button>
+      <div style="font-size:17px;font-weight:800;color:#fbbf24;">站长生码台（仅自己用）</div>
+
+      <div id="adminAuthPanel" class="section-card">
+        <div class="section-title">输入站长密码解锁</div>
+        <input id="adminPinInput" class="field-input" type="password" placeholder="输入站长密码" />
+        <button type="button" class="gen-btn" onclick="verifyAdminPin()">进入生码台</button>
+        <div id="adminAuthMsg" class="msg-tip"></div>
+      </div>
+
+      <div id="adminWorkPanel" class="section-card vip-card" style="display:none;">
+        <div class="section-title">生成一次性激活码（自动生效，无需改代码）</div>
+        <select id="adminPackSelect" class="admin-select">
+          <option value="pool_1">RM1（+RM1 累积池 / 20次）</option>
+          <option value="pool_10">RM10（+RM10 累积池 / 250次）</option>
+          <option value="direct_vip">直接买 VIP · RM100（不走累积池 / 无限次）</option>
+        </select>
+
+        <button type="button" class="gen-btn" onclick="adminCreateCode()">生成并加入可用码库</button>
+
+        <div class="gen-box">
+          <div id="adminGeneratedCode" class="gen-code-val">-</div>
+          <button type="button" class="code-btn" style="margin-top:8px;" onclick="copyGeneratedCode()">复制发给顾客</button>
+        </div>
+
+        <div id="adminMsg" class="msg-tip"></div>
+        <div id="adminLogList" class="admin-log">已生成记录会显示在这里</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 支持我们弹窗 -->
+  <div id="supportModal" class="modal-bg" onclick="bgClose(event, 'supportModal')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('supportModal')">×</button>
+      <div style="font-size:17px;font-weight:800;color:#f9a8d4;">支持我们</div>
+      <div style="font-size:13px;color:#e5e7eb;margin-top:6px;">非强制性 多少钱都可以</div>
+
+      <a
+        class="pay-link-btn"
+        style="margin-top:14px;"
+        href="https://payment.tngdigital.com.my/sc/bDLnvTC3U6"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        前往 Touch 'n Go 付款页面
+      </a>
+
+      <span class="raw-link">https://payment.tngdigital.com.my/sc/bDLnvTC3U6</span>
+    </div>
+  </div>
+
+  <script>
+    const STATE_KEY = "draw_day_wa_0162384767_4d_v12";
+    const COMPANIES = ["Toto", "Magnum", "DMC"];
+    const DRAW_DAY_FREE_QUOTA = 10;
+
+    // 你的 WhatsApp 链接（马来西亚 0162384767 -> 60162384767）
+    const CONTACT_BASE_URL = "https://wa.me/60162384767";
+
+    // 站长生码台密码
+    const ADMIN_PIN = "910826";
+
+    // 常规开彩日：0 = 周日, 3 = 周三, 6 = 周六
+    const REGULAR_DRAW_DAYS = [0, 3, 6];
+    // 如遇特别开彩日（Special Draw），可手动添加 "YYYY-MM-DD" 到此数组
+    const SPECIAL_DRAW_DATES = [];
+
+    // 预设一次性激活码库 + 站长在线生成的码也会自动写入这里
+    const ISSUED_CODES = {
+      "VIP-5ZQCZZ": { kind: "direct_vip", amount: 100, spins: 0 }
+    };
+
+    const PACK_META = {
+      pool_1:     { label: "RM1（+RM1 累积池 / 20次）", kind: "pool", amount: 1,  spins: 20  },
+      pool_10:    { label: "RM10（+RM10 累积池 / 250次）", kind: "pool", amount: 10, spins: 250 },
+      direct_vip: { label: "直接买 VIP · RM100（不走累积池 / 无限次）", kind: "direct_vip", amount: 100, spins: 0 }
+    };
+
+    const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    let selectedPackKey = "pool_1";
+    let titleTapCount = 0;
+    let titleTapTimer = null;
+    let lastGeneratedCode = "";
+
+    let state = {
+      drawDateKey: "",
+      remaining: DRAW_DAY_FREE_QUOTA,
+      poolAmount: 0,
+      reward100Claimed: false,
+      isVip: false,
+      usedCodes: [],
+      customIssuedCodes: {},
+      adminLogs: [],
+      lastPicks: null
+    };
+
+    function getAllIssuedCodes() {
+      return Object.assign({}, ISSUED_CODES, state.customIssuedCodes || {});
+    }
+
+    function getTodayKey() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
+    function isDrawDayToday() {
+      const todayKey = getTodayKey();
+      if (SPECIAL_DRAW_DATES.includes(todayKey)) return true;
+      return REGULAR_DRAW_DAYS.includes(new Date().getDay());
+    }
+
+    function shuffleCompanies() {
+      const list = [...COMPANIES];
+      for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+      }
+      return list;
+    }
+
+    function calcFan(codeStr) {
+      const freq = {};
+      for (const ch of codeStr) {
+        freq[ch] = (freq[ch] || 0) + 1;
+      }
+      const counts = Object.values(freq).sort((a, b) => b - a);
+      const key = counts.join(",");
+
+      if (key === "1,1,1,1") return { fanText: "24 番", desc: "4 个不同数字（24 种排列）" };
+      if (key === "2,1,1") return { fanText: "12 番", desc: "1 对相同 + 2 个不同（12 种排列）" };
+      if (key === "2,2") return { fanText: "6 番", desc: "2 对各自相同（6 种排列）" };
+      if (key === "3,1") return { fanText: "4 番", desc: "3 个相同 + 1 个不同（4 种排列）" };
+      return { fanText: "1 番（正字）", desc: "4 个数字完全相同（1 种排列）" };
+    }
+
+    function random4Digits() {
+      return String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+    }
+
+    function buildThreePicks() {
+      return shuffleCompanies().map(company => ({
+        company,
+        num: random4Digits()
+      }));
+    }
+
+    function renderPicks(picks) {
+      document.getElementById("threeList").innerHTML = picks.map(item => {
+        const info = calcFan(item.num);
+        return `
+          <div class="box">
+            <div class="company">${item.company}</div>
+            <div class="num">${item.num}</div>
+            <div class="fan">${info.fanText}</div>
+            <div class="pattern">${info.desc}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderOffdayBanner() {
+      document.getElementById("threeList").innerHTML = `
+        <div class="offday-banner">
+          <div class="offday-main">开彩日再来哟</div>
+          <div class="offday-sub">今天不是开彩日，等有开彩日再按吧。</div>
+        </div>
+      `;
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STATE_KEY, JSON.stringify(state));
+      } catch (e) {}
+    }
+
+    function initState() {
+      const today = getTodayKey();
+      try {
+        const raw = localStorage.getItem(STATE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object") {
+            state.poolAmount = Number(parsed.poolAmount) || 0;
+            state.reward100Claimed = Boolean(parsed.reward100Claimed);
+            state.isVip = Boolean(parsed.isVip) || state.poolAmount >= 200;
+            state.usedCodes = Array.isArray(parsed.usedCodes) ? parsed.usedCodes : [];
+            state.customIssuedCodes = (parsed.customIssuedCodes && typeof parsed.customIssuedCodes === "object") ? parsed.customIssuedCodes : {};
+            state.adminLogs = Array.isArray(parsed.adminLogs) ? parsed.adminLogs : [];
+            if (parsed.drawDateKey === today) {
+              state.drawDateKey = today;
+              state.remaining = typeof parsed.remaining === "number" ? parsed.remaining : DRAW_DAY_FREE_QUOTA;
+              state.lastPicks = Array.isArray(parsed.lastPicks) && parsed.lastPicks.length === 3 ? parsed.lastPicks : null;
+              return;
+            }
+          }
+        }
+      } catch (e) {}
+
+      state.drawDateKey = today;
+      state.remaining = DRAW_DAY_FREE_QUOTA;
+      state.lastPicks = null;
+      saveState();
+    }
+
+    function evaluatePoolMilestones() {
+      let extraMsg = "";
+      if (!state.reward100Claimed && state.poolAmount >= 100) {
+        state.reward100Claimed = true;
+        state.remaining += 1000;
+        extraMsg += " 累计满 RM100，额外送 1000 次！";
+      }
+      if (!state.isVip && state.poolAmount >= 200) {
+        state.isVip = true;
+        extraMsg += " 累计满 RM200，自动解锁 VIP 无限次！";
+      }
+      return extraMsg;
+    }
+
+    function syncAskCodeLink() {
+      const askLink = document.getElementById("askCodeLink");
+      if (!askLink) return;
+      const packText = PACK_META[selectedPackKey].label;
+      const text = encodeURIComponent(`你好，我已付款想拿激活码，档位：${packText}`);
+      const sep = CONTACT_BASE_URL.includes("?") ? "&" : "?";
+      askLink.href = `${CONTACT_BASE_URL}${sep}text=${text}`;
+    }
+
+    function syncUI() {
+      const canDraw = isDrawDayToday();
+      const pageTitle = document.getElementById("pageTitle");
+      const quotaPill = document.getElementById("quotaPill");
+      const poolPill = document.getElementById("poolPill");
+      const modalPoolText = document.getElementById("modalPoolText");
+      const btn = document.getElementById("rollBtn");
+
+      document.body.classList.toggle("vip-mode", state.isVip);
+      pageTitle.textContent = state.isVip ? "♛ 今天买什么字? · VIP" : "今天买什么字?";
+
+      quotaPill.classList.remove("vip-badge");
+      if (state.isVip) {
+        quotaPill.classList.add("vip-badge");
+        quotaPill.textContent = "♛ VIP 无限次";
+      } else {
+        quotaPill.textContent = `剩余次数：${state.remaining} 次`;
+      }
+
+      poolPill.textContent = `储值累积池：RM ${state.poolAmount}`;
+      if (modalPoolText) modalPoolText.textContent = `RM ${state.poolAmount}`;
+
+      syncAskCodeLink();
+
+      btn.classList.remove("locked");
+      if (!canDraw) {
+        btn.classList.add("locked");
+        btn.textContent = "开彩日再来哟";
+        renderOffdayBanner();
+        return;
+      }
+
+      if (state.lastPicks) {
+        renderPicks(state.lastPicks);
+      } else {
+        document.getElementById("threeList").innerHTML = `
+          <div class="box" style="grid-column: 1 / -1;">
+            <div class="pattern" style="font-size: 13px;">今天是开彩日，可按 10 次（或购买次数），点上方按钮出字。</div>
+          </div>
+        `;
+      }
+
+      const hasQuota = state.isVip || state.remaining > 0;
+      if (!hasQuota) {
+        btn.classList.add("locked");
+        btn.textContent = "次数已用完（可购买次数）";
+      } else {
+        btn.textContent = "随机出 3 组号码";
+      }
+    }
+
+    function handleRollClick() {
+      if (!isDrawDayToday()) {
+        document.getElementById("fateModal").classList.add("open");
+        return;
+      }
+
+      const hasQuota = state.isVip || state.remaining > 0;
+      if (!hasQuota) {
+        document.getElementById("fateModal").classList.add("open");
+        return;
+      }
+
+      if (!state.isVip) {
+        state.remaining = Math.max(0, state.remaining - 1);
+      }
+      state.lastPicks = buildThreePicks();
+      saveState();
+      syncUI();
+    }
+
+    function choosePack(key) {
+      selectedPackKey = key;
+      document.getElementById("optPool1").classList.toggle("active", key === "pool_1");
+      document.getElementById("optPool10").classList.toggle("active", key === "pool_10");
+      document.getElementById("optDirectVip").classList.toggle("active", key === "direct_vip");
+      syncAskCodeLink();
+      document.getElementById("buyMsg").textContent =
+        `已选「${PACK_META[key].label}」：付款后可点“付完联系拿激活码”，收到码后在下方输入入账。`;
+    }
+
+    function applyUnlockCode() {
+      const input = document.getElementById("unlockCodeInput");
+      const msg = document.getElementById("buyMsg");
+      const code = (input.value || "").trim().toUpperCase();
+
+      if (!code) {
+        msg.textContent = "请先输入激活码。";
+        return;
+      }
+      if (state.usedCodes.includes(code)) {
+        msg.textContent = "这组激活码已经使用过了。";
+        return;
+      }
+
+      const allCodes = getAllIssuedCodes();
+      const grant = allCodes[code];
+      if (!grant) {
+        msg.textContent = "激活码无效。";
+        return;
+      }
+
+      state.usedCodes.push(code);
+
+      if (grant.kind === "direct_vip") {
+        state.isVip = true;
+        saveState();
+        syncUI();
+        input.value = "";
+        msg.textContent = "已直接开通 VIP 无限次，华丽 VIP 界面已启用。";
+        return;
+      }
+
+      state.poolAmount += Number(grant.amount) || 0;
+      if (!state.isVip) {
+        state.remaining += Number(grant.spins) || 0;
+      }
+      const milestoneMsg = evaluatePoolMilestones();
+      saveState();
+      syncUI();
+      input.value = "";
+      msg.textContent = `已入账 +RM${grant.amount} 累积池（+${grant.spins} 次）。${milestoneMsg}`;
+    }
+
+    /* 站长生码台逻辑（仅站长可知入口与密码） */
+    function handleTitleTap() {
+      titleTapCount += 1;
+      clearTimeout(titleTapTimer);
+      titleTapTimer = setTimeout(() => { titleTapCount = 0; }, 1400);
+
+      if (titleTapCount >= 5) {
+        titleTapCount = 0;
+        openAdminModal();
+      }
+    }
+
+    function openAdminModal() {
+      document.getElementById("adminPinInput").value = "";
+      document.getElementById("adminAuthMsg").textContent = "";
+      document.getElementById("adminAuthPanel").style.display = "block";
+      document.getElementById("adminWorkPanel").style.display = "none";
+      document.getElementById("adminModal").classList.add("open");
+    }
+
+    function verifyAdminPin() {
+      const pin = (document.getElementById("adminPinInput").value || "").trim();
+      const authMsg = document.getElementById("adminAuthMsg");
+      if (pin !== ADMIN_PIN) {
+        authMsg.textContent = "密码不对。";
+        return;
+      }
+      document.getElementById("adminAuthPanel").style.display = "none";
+      document.getElementById("adminWorkPanel").style.display = "block";
+      renderAdminLogs();
+    }
+
+    function randomCodeText(prefix, len = 6) {
+      let body = "";
+      for (let i = 0; i < len; i++) {
+        body += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
+      }
+      return `${prefix}-${body}`;
+    }
+
+    function adminCreateCode() {
+      const packKey = document.getElementById("adminPackSelect").value;
+      const meta = PACK_META[packKey];
+      const prefix = packKey === "pool_1" ? "M1" : (packKey === "pool_10" ? "M10" : "VIP");
+
+      let newCode = randomCodeText(prefix, 6);
+      const all = getAllIssuedCodes();
+      while (all[newCode]) {
+        newCode = randomCodeText(prefix, 6);
+      }
+
+      state.customIssuedCodes[newCode] = {
+        kind: meta.kind,
+        amount: meta.amount,
+        spins: meta.spins
+      };
+      state.adminLogs.unshift(`${newCode} → ${meta.label}`);
+      if (state.adminLogs.length > 25) state.adminLogs.length = 25;
+
+      lastGeneratedCode = newCode;
+      saveState();
+      document.getElementById("adminGeneratedCode").textContent = newCode;
+      document.getElementById("adminMsg").textContent = `已生成并生效，可直接发给顾客使用。`;
+      renderAdminLogs();
+    }
+
+    function copyGeneratedCode() {
+      if (!lastGeneratedCode) return;
+      navigator.clipboard?.writeText(lastGeneratedCode).catch(() => {});
+      document.getElementById("adminMsg").textContent = `已复制 ${lastGeneratedCode}`;
+    }
+
+    function renderAdminLogs() {
+      const el = document.getElementById("adminLogList");
+      if (!el) return;
+      if (!state.adminLogs || state.adminLogs.length === 0) {
+        el.textContent = "暂无已生成记录";
+        return;
+      }
+      el.innerHTML = state.adminLogs.map(item => `<div>${item}</div>`).join("");
+    }
+
+    function openBuyModal() {
+      document.getElementById("buyMsg").textContent = "";
+      syncUI();
+      document.getElementById("buyModal").classList.add("open");
+    }
+
+    function openSupportModal() {
+      document.getElementById("supportModal").classList.add("open");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("open");
+    }
+
+    function bgClose(e, id) {
+      if (e.target.id === id) closeModal(id);
+    }
+
+    initState();
+    syncUI();
+  </script>
+</body>
+</html>
